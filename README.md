@@ -1,3 +1,3 @@
 # Cloud-Formation-Templates
 
-VPC
+Templates for setting up AWS resources for testing & experimentation.
