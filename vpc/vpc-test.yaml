@@ -1,0 +1,263 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This is for setting the test VPC
+Metadata:
+  LICENSE: Apache License Version 2.0
+
+# Sets up the VPC:
+# CIDR Block = 10.10.0.0/16
+# AZ A => Subnet => VpcTestSnA1  10.10.0.0/20       Public
+#                   VpcTestSnA2  10.10.16.0/20
+# AZ B => Subnet => VpcTestSnB1  10.10.32.0/20      Public
+#                   VpcTestSnB2  10.10.48.0/20
+# AZ C => Subnet => VpcTestSnC1  10.10.64.0/20      Public
+#                   VpcTestSnC2  10.10.128.0/20
+# Create an IGW
+# Create a RouteTable with Public Default Route to IGW
+# Associate the RuteTable to Subnet A1, B1, C1
+
+Resources:
+  VpcTest:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+      - Key: Name
+        Value: VpcTest
+
+  # AZ A - Subnet 1
+  VpcTestSnA1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcTest
+      Tags:
+      - Key: Name
+        Value: VpcTestSnA1
+      AvailabilityZone:
+        Fn::Select:
+        - '0'
+        - Fn::GetAZs: ''
+      CidrBlock: 10.10.0.0/20
+
+  # AZ A - Subnet 2
+  VpcTestSnA2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcTest
+      Tags:
+      - Key: Name
+        Value: VpcTestSnA2
+      AvailabilityZone:
+        Fn::Select:
+        - '0'
+        - Fn::GetAZs: ''
+      CidrBlock: 10.10.16.0/20
+
+  # AZ B - Subnet 1
+  VpcTestSnB1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcTest
+      Tags:
+      - Key: Name
+        Value: VpcTestSnB1
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs: ''
+      CidrBlock: 10.10.32.0/20
+
+  # AZ B - Subnet 2
+  VpcTestSnB2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcTest
+      Tags:
+      - Key: Name
+        Value: VpcTestSnB2
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs: ''
+      CidrBlock: 10.10.48.0/20
+
+  # AZ C - Subnet 1
+  VpcTestSnC1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcTest
+      Tags:
+      - Key: Name
+        Value: VpcTestSnC1
+      AvailabilityZone:
+        Fn::Select:
+        - '2'
+        - Fn::GetAZs: ''
+      CidrBlock: 10.10.64.0/20
+
+  # AZ C - Subnet 2
+  VpcTestSnC2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcTest
+      Tags:
+      - Key: Name
+        Value: VpcTestSnC2
+      AvailabilityZone:
+        Fn::Select:
+        - '2'
+        - Fn::GetAZs: ''
+      CidrBlock: 10.10.128.0/20
+
+  # Setup the internet gateway
+  IGVpcTest:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: VpcTest
+    Properties:
+      Tags:
+      - Key: Name
+        Value: IGVpcTest
+
+  # Attach the newly created Intenet Gateway to VpcTest
+  IGAttachmentVpcTest:
+    DependsOn: IGVpcTest
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId:
+        Ref: IGVpcTest
+      VpcId:
+        Ref: VpcTest
+
+  # Create a Public Route table that will need to be associated with public subnets
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VpcTest
+      Tags:
+      - Key: Name
+        Value: RT-Public
+
+  # Create the route in the route table
+  RoutePublicDefault:
+    Type: AWS::EC2::Route
+    DependsOn: IGAttachmentVpcTest
+    Properties:
+      RouteTableId:
+        Ref: RouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: IGVpcTest
+
+  # Setup the Route table in Public subnets
+  RouteTablePublicA1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: RouteTablePublic
+    Properties:
+      RouteTableId:
+        Ref: RouteTablePublic
+      SubnetId:
+        Ref: VpcTestSnA1
+
+  RouteTablePublicB1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: RouteTablePublic
+    Properties:
+      RouteTableId:
+        Ref: RouteTablePublic
+      SubnetId:
+        Ref: VpcTestSnB1
+
+  RouteTablePublicC1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn: RouteTablePublic
+    Properties:
+      RouteTableId:
+        Ref: RouteTablePublic
+      SubnetId:
+        Ref: VpcTestSnC1
+
+  # SG Used for Bastion or Jump Box
+  SgBastion:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SG-BASTION
+      GroupDescription: SG-BASTION
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: SG-BASTION
+      VpcId:
+        Ref: VpcTest
+
+  # SG for Internal | Private EC2 instances
+  # Allows connection on port 22 from Bastian host associated with SG SgBastian
+  SgInternal:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SG-INTERNAL
+      GroupDescription: SG-INTERNAL
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        SourceSecurityGroupId:
+          Ref: SgBastion
+      Tags:
+      - Key: Name
+        Value: SG-INTERNAL
+      VpcId:
+        Ref: VpcTest
+
+Outputs:
+  # Output the VPC ID & make it available for X Stack reference
+  VpcTest:
+    Description: VPC ID for the VPC
+    Value: !Ref VpcTest
+    Export:
+      Name: VpcTest
+  # Subnets A
+  VpcTestSnA1:
+    Description: VPC ID for the VPC
+    Value: !Ref VpcTestSnA1
+    Export:
+      Name: VpcTestSnA1
+  VpcTestSnA2:
+    Description: VPC ID for the VPC
+    Value: !Ref VpcTestSnA2
+    Export:
+      Name: VpcTestSnA2
+  # Subnets B
+  VpcTestSnB1:
+    Description: VPC ID for the VPC
+    Value: !Ref VpcTestSnB1
+    Export:
+      Name: VpcTestSnB1
+  VpcTestSnB2:
+    Description: VPC ID for the VPC
+    Value: !Ref VpcTestSnB2
+    Export:
+      Name: VpcTestSnB2
+  # Subnets C
+  VpcTestSnC1:
+    Description: VPC ID for the VPC
+    Value: !Ref VpcTestSnC1
+    Export:
+      Name: VpcTestSnC1
+  VpcTestSnA2:
+    Description: VPC ID for the VPC
+    Value: !Ref VpcTestSnC2
+    Export:
+      Name: VpcTestSnC2
