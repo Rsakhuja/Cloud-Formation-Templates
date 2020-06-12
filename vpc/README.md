@@ -1,20 +1,23 @@
 # This template creates a Test VPC
 
-CIDR Block = 10.10.0.0/16
+1. CIDR Block = 10.10.0.0/16
 
-- Subnet A
-# AZ A => Subnet => VpcTestSnA1  10.10.0.0/20       Public
-#                   VpcTestSnA2  10.10.16.0/20
-- Subnet B
-# AZ B => Subnet => VpcTestSnB1  10.10.32.0/20      Public
-#                   VpcTestSnB2  10.10.48.0/20
-- Subnet C
-# AZ C => Subnet => VpcTestSnC1  10.10.64.0/20      Public
-#                   VpcTestSnC2  10.10.128.0/20
+# Subnet A  AZ A => Subnet => 
+- VpcTestSnA1  10.10.0.0/20       Public
+- VpcTestSnA2  10.10.16.0/20
 
-- Create an IGW
-- Create a RouteTable with Public Default Route to IGW
-- Associate the RuteTable to Subnet A1, B1, C1
+# Subnet B  AZ B => Subnet => 
+- VpcTestSnB1  10.10.32.0/20      Public
+- VpcTestSnB2  10.10.48.0/20
+
+# Subnet C  AZ C => Subnet => 
+- VpcTestSnC1  10.10.64.0/20      Public
+- VpcTestSnC2  10.10.128.0/20
+
+2. Create an IGW
+3. Create a RouteTable with Public Default Route to IGW
+4. Associate the RuteTable to Subnet A1, B1, C1
+5. Creates Security Groups for Bastian/Internal resources
 
 
 ## Using the Template ##
