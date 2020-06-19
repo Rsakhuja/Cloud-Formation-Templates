@@ -1,0 +1,12 @@
+[
+    {
+        "ParameterKey" : "KeyNameParameter",
+        "ParameterValue" : "raj-key-pair"
+    },
+
+    {
+        "ParameterKey" : "InstanceTypeParameter",
+        "ParameterValue" : "t2.micro"
+    }
+
+]

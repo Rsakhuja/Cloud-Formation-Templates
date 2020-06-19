@@ -1,4 +1,13 @@
+---------------------------------------------------------------------
+# VPC With 1 Private Subnet with NAT
+---------------------------------------------------------------------
+
+T.B.D.
+
+---------------------------------------------------------------------
+# VPC With 3 Subnets
 # This template creates a Test VPC with 3 Subnets as explained below
+---------------------------------------------------------------------
 
 1. CIDR Block = 10.10.0.0/16
 
@@ -36,10 +45,10 @@ From Terminal
 - cd to the vpc folder
 
 - Creation
-aws cloudformation create-stack --stack-name Test-VPC --template-body file://./test-vpc.yaml 
+aws cloudformation create-stack --stack-name TestVPC --template-body file://./vpc-3-subnet-setup.yaml 
 
 - Update 
-aws cloudformation update-stack --stack-name Test-VPC --template-body file://./test-vpc.yaml 
+aws cloudformation update-stack --stack-name TestVPC --template-body file://vpc/vpc-3-subnet-setup.yaml 
 
 - Delete
 aws cloudformation delete-stack --stack-name Test-VPC

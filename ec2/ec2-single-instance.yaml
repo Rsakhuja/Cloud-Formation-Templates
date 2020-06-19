@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This is for setting up an instance of the ec2
+Metadata:
+  LICENSE: Apache License Version 2.0
+
+Parameters: 
+  # VPC Stack Name
+  NetworkStack: 
+    Description: "Name of the existing VPC Stack "
+    Default: "TestVPC"
+    Type: "String"
+  # Key Pair Name
+  KeyNameParameter: 
+    Description: "Name of an existing EC2 KeyPair"
+    Type: "AWS::EC2::KeyPair::KeyName"
+  # AMI to be used
+  LatestAmiId: 
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  # Instance type - default is the smallest
+  InstanceTypeParameter: 
+    Type: String
+    Default: t2.micro
+    AllowedValues: 
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+  # Subnet ID 
+  SubnetIDParameter: 
+    Type: String
+    Default: SnA1
+    AllowedValues: 
+      - SnA1
+      - SnA2
+      - SnB1
+      - SnB2
+      - SnC1
+      - SnC2
+    Description: Provide the subnet ID 
+  # Security Group
+  SecurityGroupParameter: 
+    Type: String
+    Default: SgBastion
+    Description: Provide the subnet ID 
+
+Resources:
+  # Single EC2 Instance 
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    DependsOn: EC2InstanceRole
+    Properties:
+      InstanceType: 
+        Ref: "InstanceTypeParameter"
+      KeyName:
+        Ref: "KeyNameParameter"
+      ImageId: 
+        Ref: "LatestAmiId"
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Fn::ImportValue:
+                  !Sub "${NetworkStack}-${SecurityGroupParameter}"
+          SubnetId: 
+            Fn::ImportValue:
+              !Sub "${NetworkStack}-${SubnetIDParameter}"
+      IamInstanceProfile: 
+        Ref: "EC2InstanceProfile"
+  # Role for the EC2 instance
+  EC2InstanceRole:
+    Description: "This is the role for the EC2 Instance"
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: Allow
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AdministratorAccess"
+  # Instance Profile
+  EC2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties: 
+      Path: "/"
+      Roles: 
+        - 
+          Ref: "EC2InstanceRole"
+
+    

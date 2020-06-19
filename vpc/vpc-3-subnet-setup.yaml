@@ -227,37 +227,59 @@ Outputs:
     Description: VPC ID for the VPC
     Value: !Ref VpcTest
     Export:
-      Name: VpcTest
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-VPCID"
   # Subnets A
   VpcTestSnA1:
     Description: VPC ID for the VPC
     Value: !Ref VpcTestSnA1
     Export:
-      Name: VpcTestSnA1
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SnA1"
   VpcTestSnA2:
     Description: VPC ID for the VPC
     Value: !Ref VpcTestSnA2
     Export:
-      Name: VpcTestSnA2
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SnA2"
   # Subnets B
   VpcTestSnB1:
     Description: VPC ID for the VPC
     Value: !Ref VpcTestSnB1
     Export:
-      Name: VpcTestSnB1
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SnB1"
   VpcTestSnB2:
     Description: VPC ID for the VPC
     Value: !Ref VpcTestSnB2
     Export:
-      Name: VpcTestSnB2
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SnB2"
   # Subnets C
   VpcTestSnC1:
     Description: VPC ID for the VPC
     Value: !Ref VpcTestSnC1
     Export:
-      Name: VpcTestSnC1
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SnC1"
   VpcTestSnA2:
     Description: VPC ID for the VPC
     Value: !Ref VpcTestSnC2
     Export:
-      Name: VpcTestSnC2
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SnC2"
+
+  # Security groups
+  VpcTestSgBastion:
+    Description: Security Group ID for Bastion
+    Value: !Ref SgBastion
+    Export:
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SgBastion"
+
+  VpcTestSgInternal:
+    Description: Security Group ID for Internal
+    Value: !Ref SgInternal
+    Export:
+      Name: 
+        "Fn::Sub": "${AWS::StackName}-SgInternal"
