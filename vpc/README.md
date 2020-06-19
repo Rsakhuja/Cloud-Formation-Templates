@@ -1,4 +1,4 @@
-# This template creates a Test VPC
+# This template creates a Test VPC with 3 Subnets as explained below
 
 1. CIDR Block = 10.10.0.0/16
 
@@ -42,3 +42,4 @@ aws cloudformation create-stack --stack-name Test-VPC --template-body file://./t
 aws cloudformation update-stack --stack-name Test-VPC --template-body file://./test-vpc.yaml 
 
 - Delete
+aws cloudformation delete-stack --stack-name Test-VPC
